@@ -204,7 +204,7 @@ function size(mx::MxArray)
     nd = ndims(mx)
     pdims = ccall(_mx_get_dims, Ptr{mwSize}, (Ptr{Void},), mx.ptr)
     _dims = unsafe_wrap(Array, pdims, (nd,))
-    dims = Array(Int, nd)
+    dims = Array{Int}(nd)
     for i = 1 : nd
         dims[i] = convert(Int, _dims[i])
     end
@@ -267,7 +267,7 @@ mxempty() = MxArray(Float64, 0, 0)
 
 function _dims_to_mwSize(dims::Tuple{Vararg{Int}})
     ndim = length(dims)
-    _dims = Array(mwSize, ndim)
+    _dims = Array{mwSize}(ndim)
     for i = 1 : ndim
         _dims[i] = convert(mwSize, dims[i])
     end
@@ -433,7 +433,7 @@ MxArray(a::Array) = mxcellarray(a)
 
 function _fieldname_array(fieldnames::String...)
     n = length(fieldnames)
-    a = Array(Ptr{UInt8}, n)
+    a = Array{Ptr{UInt8}}(n)
     for i = 1 : n
         a[i] = Base.unsafe_convert(Ptr{UInt8}, fieldnames[i])
     end
@@ -501,7 +501,7 @@ end
 
 function mxstruct(pairs::Pairs...)
     nf = length(pairs)
-    fieldnames = Array(String, nf)
+    fieldnames = Array{String}(nf)
     for i = 1 : nf
         fn = pairs[i][1]
         fieldnames[i] = string(fn)
@@ -561,7 +561,7 @@ function _jarrayx(fun::String, mx::MxArray, siz::Tuple)
             idat = unsafe_wrap(Array, imag_ptr(mx), siz)
             a = complex(rdat, idat)
         else
-            a = Array(T, siz)
+            a = Array{T}(siz);
             if !isempty(a)
                 ccall(:memcpy, Ptr{Void}, (Ptr{Void}, Ptr{Void}, UInt),
                     a, data_ptr(mx), sizeof(T) * length(a))
@@ -570,7 +570,7 @@ function _jarrayx(fun::String, mx::MxArray, siz::Tuple)
         a
         #unsafe_wrap(Array, data_ptr(mx), siz)
     elseif is_cell(mx)
-        a = Array(Any, siz)
+        a = Array{Any}(siz)
         for i = 1 : length(a)
             a[i] = Any(get_cell(mx, i))
         end
@@ -612,8 +612,8 @@ function _jsparse{T<:MxRealNum}(ty::Type{T}, mx::MxArray)
     jc_a::Vector{mwIndex} = unsafe_wrap(Array, jc_ptr, (n+1,))
     nnz = jc_a[n+1]
 
-    ir = Array(Int, nnz)
-    jc = Array(Int, n+1)
+    ir = Array{Int}(nnz)
+    jc = Array{Int}(n+1)
 
     ir_x = unsafe_wrap(Array, ir_ptr, (nnz,))
     for i = 1 : nnz
@@ -650,8 +650,8 @@ function Dict(mx::MxArray)
         throw(ArgumentError("jdict only applies to a single struct."))
     end
     nf = nfields(mx)
-    fnames = Array(String, nf)
-    fvals = Array(Any, nf)
+    fnames = Array{String}(nf)
+    fvals = Array{Any}(nf)
     for i = 1 : nf
         fnames[i] = get_fieldname(mx, i)
         pv::Ptr{Void} = ccall(_mx_get_field_bynum,
